@@ -12,10 +12,16 @@ using namespace std;
 
 int main()
 {
-	Mat image1, image2, diff, diffGray;
-	image1 = imread("Resources/image1.png");
-	image2 = imread("Resources/image2.png");
-	
+	Mat image1_original, image2_original, diff, diffGray;
+	Mat image1, image2;
+
+	image1_original = imread("Resources/test image1.jpg");
+	image2_original = imread("Resources/test image2.jpg");
+
+	resize(image1_original, image1, Size(), 0.5, 0.5);
+	resize(image2_original, image2, Size(), 0.5, 0.5);
+
+
 	absdiff(image1, image2, diff);
 	cvtColor(diff, diffGray, COLOR_BGR2GRAY);
 

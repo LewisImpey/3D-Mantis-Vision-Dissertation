@@ -34,7 +34,7 @@ Mat detectDilation(Mat diff)
 {
 	Mat dilatedImage;
 	// applying a blur filter to the image to merge neighboring pixels together. This should allow the bounding boxes to pick up larger areas of pixels.
-	GaussianBlur(diff, diff, Size(5, 5), 3, 5);
+	GaussianBlur(diff, diff, Size(5, 5), 3, 5); // I think this should be put before the absdiff() function is run to get a more accurate bounding box
 	// applying a threshold to the difference image
 
 	Mat kernal = getStructuringElement(MORPH_ERODE, Size(100, 100));

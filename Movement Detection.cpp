@@ -14,6 +14,9 @@
 using namespace cv;
 using namespace std;
 
+RNG rng(12345);
+Scalar colour = Scalar(rng.uniform(0, 256), rng.uniform(0, 256), rng.uniform(0, 256));
+
 Mat detectDifference(Mat ImageFrame1, Mat ImageFrame2)
 {
 	Mat diff;
@@ -48,7 +51,7 @@ void detectContours(Mat& image, Mat& dilatedImage)
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
 	Mat threshold_output;
-	threshold(dilatedImage, threshold_output, 100, 255, THRESH_BINARY);
+	threshold(dilatedImage, threshold_output, 10, 255, THRESH_BINARY);
 	findContours(threshold_output, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
 
 	vector<vector<Point> > contours_poly(contours.size());
@@ -60,10 +63,16 @@ void detectContours(Mat& image, Mat& dilatedImage)
 		boundRect[i] = boundingRect(Mat(contours_poly[i]));
 	}
 	//Mat image = Mat::zeros(threshold_output.size(), CV_8UC3);
+	Mat drawing = Mat::zeros(threshold_output.size(), CV_8UC3);
+
 	for (size_t i = 0; i < contours.size(); i++)
 	{
 		//drawContours(drawing, contours_poly, (int)i, 255, 1, 8, vector<Vec4i>(), 0, Point());
 		rectangle(image, boundRect[i].tl(), boundRect[i].br(), 255, 2, 8, 0);
+		putText(drawing, to_string(boundRect[i].x) , Point(20, 20), FONT_HERSHEY_DUPLEX, 0.75, colour, 4);
+		putText(drawing, to_string(boundRect[i].y), Point(20, 40), FONT_HERSHEY_DUPLEX, 0.75, colour, 4);
+		imshow("coords", drawing);
+		waitKey(1);
 
 	}
 

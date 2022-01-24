@@ -37,7 +37,7 @@ Mat detectDilation(Mat diff)
 {
 	Mat dilatedImage;
 	// applying a blur filter to the image to merge neighboring pixels together. This should allow the bounding boxes to pick up larger areas of pixels.
-	GaussianBlur(diff, diff, Size(5, 5), 3, 5); // I think this should be put before the absdiff() function is run to get a more accurate bounding box
+	GaussianBlur(diff, diff, Size(7, 7), 2, 2); // I think this should be put before the absdiff() function is run to get a more accurate bounding box (blur before makes it considerably slower)
 	// applying a threshold to the difference image
 
 	Mat kernal = getStructuringElement(MORPH_ERODE, Size(100, 100));
@@ -46,7 +46,7 @@ Mat detectDilation(Mat diff)
 	return dilatedImage, diff;
 }
 
-void detectContours(Mat& image, Mat& dilatedImage)
+void detectContours(Mat& image, Mat& dilatedImage, bool isLeftCamera)
 {
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
@@ -56,11 +56,15 @@ void detectContours(Mat& image, Mat& dilatedImage)
 
 	vector<vector<Point> > contours_poly(contours.size());
 	vector<Rect> boundRect(contours.size());
+	Point2f leftCameraCornerCoordinates;
+	Point2f rightCameraCornerCoordinates;
 
 	for (size_t i = 0; i < contours.size(); i++)
 	{
 		approxPolyDP(Mat(contours[i]), contours_poly[i], 3, true);
 		boundRect[i] = boundingRect(Mat(contours_poly[i]));
+		if (isLeftCamera == true) { leftCameraCornerCoordinates.x = boundRect[i].x; leftCameraCornerCoordinates.y = boundRect[i].y; isLeftCamera = false; }
+		else { rightCameraCornerCoordinates.x = boundRect[i].x; rightCameraCornerCoordinates.y = boundRect[i].y; isLeftCamera = true; }
 	}
 	//Mat image = Mat::zeros(threshold_output.size(), CV_8UC3);
 	Mat drawing = Mat::zeros(threshold_output.size(), CV_8UC3);
@@ -69,8 +73,12 @@ void detectContours(Mat& image, Mat& dilatedImage)
 	{
 		//drawContours(drawing, contours_poly, (int)i, 255, 1, 8, vector<Vec4i>(), 0, Point());
 		rectangle(image, boundRect[i].tl(), boundRect[i].br(), 255, 2, 8, 0);
-		putText(drawing, to_string(boundRect[i].x) , Point(20, 20), FONT_HERSHEY_DUPLEX, 0.75, colour, 4);
-		putText(drawing, to_string(boundRect[i].y), Point(20, 40), FONT_HERSHEY_DUPLEX, 0.75, colour, 4);
+		putText(drawing, to_string(leftCameraCornerCoordinates.x) , Point(20, 20), FONT_HERSHEY_DUPLEX, 0.75, colour, 4);
+		putText(drawing, to_string(leftCameraCornerCoordinates.y), Point(20, 40), FONT_HERSHEY_DUPLEX, 0.75, colour, 4);
+
+		putText(drawing, to_string(rightCameraCornerCoordinates.x), Point(20, 60), FONT_HERSHEY_DUPLEX, 0.75, colour, 4);
+		putText(drawing, to_string(rightCameraCornerCoordinates.y), Point(20, 80), FONT_HERSHEY_DUPLEX, 0.75, colour, 4);
+
 		imshow("coords", drawing);
 		waitKey(1);
 
@@ -110,8 +118,8 @@ int main()
 		leftDilatedImage = detectDilation(leftDiff);
 		rightDilatedImage = detectDilation(rightDiff);
 
-		detectContours(leftDiff, leftDilatedImage);
-		detectContours(rightDiff, rightDilatedImage);
+		detectContours(leftDiff, leftDilatedImage, true);
+		detectContours(rightDiff, rightDilatedImage, false);
 
 		imshow("left dilated image", leftDiff);
 		imshow("right dilated image", rightDiff);

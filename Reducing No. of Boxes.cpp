@@ -50,15 +50,17 @@ void detectContours(Mat& image, Mat& dilatedImage)
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
 	Mat threshold_output;
-	threshold(dilatedImage, threshold_output, 100, 255, THRESH_BINARY);
+	threshold(dilatedImage, threshold_output, 50, 255, THRESH_BINARY);
 	//Canny(threshold_output, threshold_output, 100, 200);
 	findContours(threshold_output, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE, Point(0, 0));
 
 	vector<vector<Point> > contours_poly(contours.size());
 	vector<Rect> boundRect(contours.size());
 
-	int leftmostBox = 0;
-	int rightmostBox = 0;
+	int leftmostBox_x = 0;
+	int leftmostBox_y = 0;
+	int rightmostBox_x = 0;
+	int rightmostBox_y = 0;
 
 	for (int i = 0; i < contours.size(); i++)
 	{
@@ -66,29 +68,41 @@ void detectContours(Mat& image, Mat& dilatedImage)
 		approxPolyDP(Mat(contours[i]), contours_poly[i], 3, true); // can change epsilon accuracy to change polygonal precision
 		boundRect[i] = boundingRect(Mat(contours_poly[i]));
 
-		if (i == 0) { leftmostBox = 0; }
-		else if (boundRect[i].tl().x < boundRect[i - 1].tl().x || boundRect[i].tl().y < boundRect[i - 1].tl().y) leftmostBox = i;
+		if (i == 0) { leftmostBox_x = 0; }
+		else if (boundRect[i].tl().x < boundRect[i - 1].tl().x) leftmostBox_x = i;
 
-		if (i == 0) { rightmostBox = 0; }
-		else if (boundRect[i].br().y > boundRect[i - 1].br().y || boundRect[i].br().x > boundRect[i - 1].br().x) rightmostBox = i;
+		if (i == 0) { leftmostBox_y = 0; }
+		else if (boundRect[i].tl().y < boundRect[i - 1].tl().y) leftmostBox_y = i;
+
+		if (i == 0) { rightmostBox_x = 0; }
+		else if (boundRect[i].br().x > boundRect[i - 1].br().x) rightmostBox_x = i;
+
+		if (i == 0) { rightmostBox_y = 0; }
+		else if (boundRect[i].br().y > boundRect[i - 1].br().y) rightmostBox_y = i;
+
 	}
 
 	for (int i = 0; i < contours.size(); i++)
 	{
 		drawContours(image, contours_poly, (int)i, 255, 1, 8, vector<Vec4i>(), 0, Point());
-		//rectangle(image, boundRect[i].tl(), boundRect[i].br(), 255, 2, 8, 0);
-
-		putText(image, to_string(boundRect[leftmostBox].tl().x), Point(10, 20), FONT_HERSHEY_DUPLEX, 0.75, colour, 1);
-		putText(image, to_string(boundRect[leftmostBox].tl().y), Point(10, 40), FONT_HERSHEY_DUPLEX, 0.75, colour, 1);
-
-		putText(image, to_string(boundRect[rightmostBox].br().x), Point(10, 80), FONT_HERSHEY_DUPLEX, 0.75, colour, 1, true);
-		putText(image, to_string(boundRect[rightmostBox].br().y), Point(10, 100), FONT_HERSHEY_DUPLEX, 0.75, colour, 1, true);
+		rectangle(image, boundRect[i].tl(), boundRect[i].br(), 255, 2, 8, 0);
 	}
-	rectangle(image, boundRect[leftmostBox].tl(), boundRect[rightmostBox].br(), colour, 2, 8, 0);
-	circle(image, boundRect[leftmostBox].tl(), 3, Scalar(255, 255, 255), FILLED);
-	circle(image, boundRect[leftmostBox].br(), 3, Scalar(255, 255, 255), FILLED);
-	circle(image, boundRect[rightmostBox].tl(), 3, Scalar(255, 255, 255), FILLED);
-	circle(image, boundRect[rightmostBox].br(), 3, Scalar(255, 255, 255), FILLED);
+
+	putText(image, "Lx", Point(boundRect[leftmostBox_x].tl()), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
+	putText(image, "Ly", Point(boundRect[leftmostBox_y].tl()), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
+	putText(image, "Rx", Point(boundRect[rightmostBox_x].br()), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
+	putText(image, "Ry", Point(boundRect[rightmostBox_y].br()), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
+
+	putText(image, "Lx: " + to_string(boundRect[leftmostBox_x].tl().x), Point(10, 20), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
+	putText(image, "Ly: " + to_string(boundRect[leftmostBox_y].tl().y), Point(10, 40), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
+	putText(image, "Rx: " + to_string(boundRect[rightmostBox_x].br().x), Point(10, 80), FONT_HERSHEY_DUPLEX, 0.50, colour, 1, true);
+	putText(image, "Ry: " + to_string(boundRect[rightmostBox_y].br().y), Point(10, 100), FONT_HERSHEY_DUPLEX, 0.50, colour, 1, true);
+
+	//rectangle(image,Point(boundRect[leftmostBox_x].tl().x, boundRect[leftmostBox_y].tl().y), Point(boundRect[rightmostBox_x].br().x, boundRect[rightmostBox_y].br().y), colour, 2, 8, 0);
+	circle(image, boundRect[leftmostBox_x].tl(), 3, Scalar(255, 255, 255), FILLED);
+	circle(image, boundRect[leftmostBox_y].br(), 3, Scalar(255, 255, 255), FILLED);
+	circle(image, boundRect[rightmostBox_x].tl(),3, Scalar(255, 255, 255), FILLED);
+	circle(image, boundRect[rightmostBox_y].br(), 3, Scalar(255, 255, 255), FILLED);
 }
 
 int main()

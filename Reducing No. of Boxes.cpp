@@ -51,7 +51,6 @@ void detectContours(Mat& image, Mat& dilatedImage)
 	vector<Vec4i> hierarchy;
 	Mat threshold_output;
 	threshold(dilatedImage, threshold_output, 50, 255, THRESH_BINARY);
-	//Canny(threshold_output, threshold_output, 100, 200);
 	findContours(threshold_output, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE, Point(0, 0));
 
 	vector<vector<Point> > contours_poly(contours.size());
@@ -85,24 +84,24 @@ void detectContours(Mat& image, Mat& dilatedImage)
 	for (int i = 0; i < contours.size(); i++)
 	{
 		drawContours(image, contours_poly, (int)i, 255, 1, 8, vector<Vec4i>(), 0, Point());
-		rectangle(image, boundRect[i].tl(), boundRect[i].br(), 255, 2, 8, 0);
+		//rectangle(image, boundRect[i].tl(), boundRect[i].br(), 255, 2, 8, 0);
 	}
 
-	putText(image, "Lx", Point(boundRect[leftmostBox_x].tl()), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
-	putText(image, "Ly", Point(boundRect[leftmostBox_y].tl()), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
-	putText(image, "Rx", Point(boundRect[rightmostBox_x].br()), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
-	putText(image, "Ry", Point(boundRect[rightmostBox_y].br()), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
+	putText(image, "Left x", Point(boundRect[leftmostBox_x].tl()), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
+	putText(image, "Left y", Point(boundRect[leftmostBox_y].tl()), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
+	putText(image, "Right x", Point(boundRect[rightmostBox_x].br()), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
+	putText(image, "Right y", Point(boundRect[rightmostBox_y].br()), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
 
 	putText(image, "Lx: " + to_string(boundRect[leftmostBox_x].tl().x), Point(10, 20), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
 	putText(image, "Ly: " + to_string(boundRect[leftmostBox_y].tl().y), Point(10, 40), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
 	putText(image, "Rx: " + to_string(boundRect[rightmostBox_x].br().x), Point(10, 80), FONT_HERSHEY_DUPLEX, 0.50, colour, 1, true);
 	putText(image, "Ry: " + to_string(boundRect[rightmostBox_y].br().y), Point(10, 100), FONT_HERSHEY_DUPLEX, 0.50, colour, 1, true);
 
-	//rectangle(image,Point(boundRect[leftmostBox_x].tl().x, boundRect[leftmostBox_y].tl().y), Point(boundRect[rightmostBox_x].br().x, boundRect[rightmostBox_y].br().y), colour, 2, 8, 0);
-	circle(image, boundRect[leftmostBox_x].tl(), 3, Scalar(255, 255, 255), FILLED);
-	circle(image, boundRect[leftmostBox_y].br(), 3, Scalar(255, 255, 255), FILLED);
-	circle(image, boundRect[rightmostBox_x].tl(),3, Scalar(255, 255, 255), FILLED);
-	circle(image, boundRect[rightmostBox_y].br(), 3, Scalar(255, 255, 255), FILLED);
+	rectangle(image,Point(boundRect[leftmostBox_x].tl().x, boundRect[leftmostBox_y].tl().y), Point(boundRect[rightmostBox_x].br().x, boundRect[rightmostBox_y].br().y), colour, 2, 8, 0);
+	circle(image, Point(boundRect[leftmostBox_x].tl().x, boundRect[leftmostBox_x].tl().y), 7, Scalar(255, 255, 255), FILLED);
+	circle(image, Point(boundRect[leftmostBox_y].tl().x, boundRect[leftmostBox_y].tl().y), 7, Scalar(255, 255, 255), FILLED);
+	circle(image, Point(boundRect[rightmostBox_x].br().x, boundRect[rightmostBox_x].br().y), 7, Scalar(255, 255, 255), FILLED);
+	circle(image, Point(boundRect[rightmostBox_y].br().x, boundRect[rightmostBox_y].br().y), 7, Scalar(255, 255, 255), FILLED);
 }
 
 int main()

@@ -20,7 +20,9 @@ Scalar colour = Scalar(rng.uniform(0, 256), rng.uniform(0, 256), rng.uniform(0, 
 Mat detectDifference(Mat ImageFrame1, Mat ImageFrame2)
 {
 	Mat diff;
+	Mat dilatedImage;
 
+	// resize size of images for visual clarity
 	resize(ImageFrame1, ImageFrame1, Size(), 0.5, 0.5);
 	resize(ImageFrame2, ImageFrame2, Size(), 0.5, 0.5);
 
@@ -28,62 +30,53 @@ Mat detectDifference(Mat ImageFrame1, Mat ImageFrame2)
 	cvtColor(ImageFrame1, ImageFrame1, COLOR_BGR2GRAY);
 	cvtColor(ImageFrame2, ImageFrame2, COLOR_BGR2GRAY);
 
+	// applying a blur filter to the image to merge neighboring pixels together. This should allow the bounding boxes to pick up larger areas of pixels.
+	GaussianBlur(ImageFrame1, ImageFrame1, Size(7, 7), 2, 2);
+	GaussianBlur(ImageFrame2, ImageFrame2, Size(7, 7), 2, 2);
+	Mat kernel = getStructuringElement(MORPH_ERODE, Size(100, 100));
+	
+	erode(ImageFrame1, ImageFrame1, kernel);
+	dilate(ImageFrame1, ImageFrame2, kernel);
+
+
 	// getting the difference between the two images
 	absdiff(ImageFrame1, ImageFrame2, diff);
 
 	return diff;
 }
-Mat applyDilation(Mat diff)
-{
-	Mat dilatedImage;
-	// applying a blur filter to the image to merge neighboring pixels together. This should allow the bounding boxes to pick up larger areas of pixels.
-	GaussianBlur(diff, diff, Size(7, 7), 2, 2); // I think this should be put before the absdiff() function is run to get a more accurate bounding box (blur before makes it considerably slower)
 
-	Mat kernal = getStructuringElement(MORPH_ERODE, Size(100, 100));
-	dilate(diff, dilatedImage, kernal);
-
-	return dilatedImage, diff;
-}
-
-void detectContours(Mat& image, Mat& dilatedImage, bool isLeftCamera)
+void detectContours(Mat& image)
 {
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
 	Mat threshold_output;
-	threshold(dilatedImage, threshold_output, 50, 255, THRESH_BINARY);
+	int largestContour = 0;
+	threshold(image, threshold_output, 50, 255, THRESH_BINARY);
 	Canny(threshold_output, threshold_output, 100, 200);
 	findContours(threshold_output, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
-
 	vector<vector<Point> > contours_poly(contours.size());
 	vector<Rect> boundRect(contours.size());
-	Point2f leftCameraCornerCoordinates;
-	Point2f rightCameraCornerCoordinates;
 
 	for (size_t i = 0; i < contours.size(); i++)
 	{
 		approxPolyDP(Mat(contours[i]), contours_poly[i], 10, true); // can change epsilon accuracy to change polygonal precision
 		boundRect[i] = boundingRect(Mat(contours_poly[i]));
-		if (isLeftCamera == true) { leftCameraCornerCoordinates.x = boundRect[i].x; leftCameraCornerCoordinates.y = boundRect[i].y; isLeftCamera = false; } // not sure about this true of false thing
-		else { rightCameraCornerCoordinates.x = boundRect[i].x; rightCameraCornerCoordinates.y = boundRect[i].y; isLeftCamera = true; }                     // there's probably a better way to do it
 	}
-	//Mat image = Mat::zeros(threshold_output.size(), CV_8UC3);
-	Mat drawing = Mat::zeros(threshold_output.size(), CV_8UC3);
 
+	for (size_t i = 1; i < contours.size(); i++)
+	{
+		if (boundRect[i].area() > boundRect[i - 1].area()) largestContour = i;
+		else largestContour = i - 1;
+	}
+	
 	for (size_t i = 0; i < contours.size(); i++)
 	{
-		drawContours(drawing, contours_poly, (int)i, 255, 1, 8, vector<Vec4i>(), 0, Point());
+		drawContours(image, contours_poly, (int)i, 255, 1, 8, vector<Vec4i>(), 0, Point());
 		rectangle(image, boundRect[i].tl(), boundRect[i].br(), 255, 2, 8, 0);
-		putText(drawing, to_string(leftCameraCornerCoordinates.x), Point(20, 20), FONT_HERSHEY_DUPLEX, 0.75, colour, 4);
-		putText(drawing, to_string(leftCameraCornerCoordinates.y), Point(20, 40), FONT_HERSHEY_DUPLEX, 0.75, colour, 4);
-
-		putText(drawing, to_string(rightCameraCornerCoordinates.x), Point(20, 60), FONT_HERSHEY_DUPLEX, 0.75, colour, 4);
-		putText(drawing, to_string(rightCameraCornerCoordinates.y), Point(20, 80), FONT_HERSHEY_DUPLEX, 0.75, colour, 4);
-
-		imshow("coords", drawing); // find a better way of doing this (in the main probably) and try to add the coords into the corner of each cameras view
-		waitKey(1);
-
 	}
-
+	
+	//rectangle(image, boundRect[largestContour].tl(), boundRect[largestContour].br(), 255, 2, 8, 0);
+	waitKey(1);
 }
 
 int main()
@@ -107,14 +100,11 @@ int main()
 	leftDiff = detectDifference(leftImage1, leftImage2);
 	rightDiff = detectDifference(rightImage1, rightImage2);
 
-	leftDiff = detectDifference(leftImage1, leftImage2);
-	rightDiff = detectDifference(rightImage1, rightImage2);
+	//leftDilatedImage = applyDilation(leftDiff);
+	//rightDilatedImage = applyDilation(rightDiff);
 
-	leftDilatedImage = applyDilation(leftDiff);
-	rightDilatedImage = applyDilation(rightDiff);
-
-	detectContours(leftDiff, leftDilatedImage, true);
-	detectContours(rightDiff, rightDilatedImage, false);
+	detectContours(leftDiff);
+	detectContours(rightDiff);
 
 	imshow("left image", leftDiff);
 	imshow("right image", rightDiff);

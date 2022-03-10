@@ -23,20 +23,20 @@ Mat detectDifference(Mat ImageFrame1, Mat ImageFrame2)
 	Mat dilatedImage;
 
 	// resize size of images for visual clarity
-	resize(ImageFrame1, ImageFrame1, Size(), 0.5, 0.5);
-	resize(ImageFrame2, ImageFrame2, Size(), 0.5, 0.5);
+	//resize(ImageFrame1, ImageFrame1, Size(), 0.5, 0.5);
+	//resize(ImageFrame2, ImageFrame2, Size(), 0.5, 0.5);
 
 	// converting to grayscale
 	cvtColor(ImageFrame1, ImageFrame1, COLOR_BGR2GRAY);
 	cvtColor(ImageFrame2, ImageFrame2, COLOR_BGR2GRAY);
 
 	// applying a blur filter to the image to merge neighboring pixels together. This should allow the bounding boxes to pick up larger areas of pixels.
-	GaussianBlur(ImageFrame1, ImageFrame1, Size(7, 7), 2, 2);
-	GaussianBlur(ImageFrame2, ImageFrame2, Size(7, 7), 2, 2);
+	GaussianBlur(ImageFrame1, ImageFrame1, Size(7, 7), 0, 0);
+	GaussianBlur(ImageFrame2, ImageFrame2, Size(7, 7), 0, 0);
 	Mat kernel = getStructuringElement(MORPH_ERODE, Size(100, 100));
 	
-	erode(ImageFrame1, ImageFrame1, kernel);
-	dilate(ImageFrame1, ImageFrame2, kernel);
+	//erode(ImageFrame1, ImageFrame1, kernel);
+	//dilate(ImageFrame1, ImageFrame2, kernel);
 
 
 	// getting the difference between the two images
@@ -50,29 +50,49 @@ void detectContours(Mat& image)
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
 	Mat threshold_output;
+	int largestContourArea = 0;
 	int largestContour = 0;
-	threshold(image, threshold_output, 50, 255, THRESH_BINARY);
+	threshold(image, threshold_output, 25, 255, THRESH_BINARY);
 	Canny(threshold_output, threshold_output, 100, 200);
 	findContours(threshold_output, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
 	vector<vector<Point> > contours_poly(contours.size());
 	vector<Rect> boundRect(contours.size());
 
+	int leftmostBox_x = 0;
+	int leftmostBox_y = 0;
+	int rightmostBox_x = 0;
+	int rightmostBox_y = 0;
+
 	for (size_t i = 0; i < contours.size(); i++)
 	{
-		approxPolyDP(Mat(contours[i]), contours_poly[i], 10, true); // can change epsilon accuracy to change polygonal precision
+		approxPolyDP(Mat(contours[i]), contours_poly[i], 50, true); // can change epsilon accuracy to change polygonal precision
 		boundRect[i] = boundingRect(Mat(contours_poly[i]));
+
+		if (i == 0) { leftmostBox_x = 0; }
+		else if (boundRect[i].tl().x < boundRect[i - 1].tl().x) leftmostBox_x = i;
+
+		if (i == 0) { leftmostBox_y = 0; }
+		else if (boundRect[i].tl().y < boundRect[i - 1].tl().y) leftmostBox_y = i;
+
+		if (i == 0) { rightmostBox_x = 0; }
+		else if (boundRect[i].br().x > boundRect[i - 1].br().x) rightmostBox_x = i;
+
+		if (i == 0) { rightmostBox_y = 0; }
+		else if (boundRect[i].br().y > boundRect[i - 1].br().y) rightmostBox_y = i;
 	}
 
-	for (size_t i = 1; i < contours.size(); i++)
+	for (size_t i = 0; i < contours.size(); i++)
 	{
-		if (boundRect[i].area() > boundRect[i - 1].area()) largestContour = i;
-		else largestContour = i - 1;
+		if (i == 0) { largestContourArea = boundRect[0].area(); }
+		else if (boundRect[i].area() > largestContourArea) {largestContourArea = boundRect[i].area(); largestContour = i;}
 	}
-	
+
 	for (size_t i = 0; i < contours.size(); i++)
 	{
 		drawContours(image, contours_poly, (int)i, 255, 1, 8, vector<Vec4i>(), 0, Point());
-		rectangle(image, boundRect[i].tl(), boundRect[i].br(), 255, 2, 8, 0);
+		//rectangle(image, boundRect[i].tl(), boundRect[i].br(), 255, 2, 8, 0);
+		rectangle(image, boundRect[largestContour].tl(), boundRect[largestContour].br(), 255, 2, 8, 0);
+		//rectangle(image, Point(boundRect[leftmostBox_x].tl().x, boundRect[leftmostBox_y].tl().y), Point(boundRect[rightmostBox_x].br().x, boundRect[rightmostBox_y].br().y), colour, 2, 8, 0);
 	}
 	
 	//rectangle(image, boundRect[largestContour].tl(), boundRect[largestContour].br(), 255, 2, 8, 0);
@@ -83,7 +103,7 @@ int main()
 {
 	Mat leftDiff, leftDilatedImage;
 	Mat rightDiff, rightDilatedImage;
-	
+	/*
 	// this if trying to use an image
 	string leftImageSource1 = "Resources/left_image_1.jpg";
 	string rightImageSource1 = "Resources/right_image_1.jpg";
@@ -109,12 +129,12 @@ int main()
 	imshow("left image", leftDiff);
 	imshow("right image", rightDiff);
 	waitKey(0);
-
+	*/
 	// this is taking image directly from cameras
 
-	/*
+	
 
-	VideoCapture leftImageSource(0), rightImageSource(1);
+	VideoCapture leftImageSource(1), rightImageSource(2);
 
 	while (true)
 	{
@@ -128,15 +148,15 @@ int main()
 		leftDiff = detectDifference(leftImageFrame1, leftImageFrame2);
 		rightDiff = detectDifference(rightImageFrame1, rightImageFrame2);
 
-		leftDilatedImage = applyDilation(leftDiff);
-		rightDilatedImage = applyDilation(rightDiff);
+		//leftDilatedImage = applyDilation(leftDiff);
+		//rightDilatedImage = applyDilation(rightDiff);
 
-		detectContours(leftDiff, leftDilatedImage, true);
-		detectContours(rightDiff, rightDilatedImage, false);
+		detectContours(leftDiff);
+		detectContours(rightDiff);
 
 		imshow("left dilated image", leftDiff);
 		imshow("right dilated image", rightDiff);
 		waitKey(1);
 	}
-	*/
+	
 }

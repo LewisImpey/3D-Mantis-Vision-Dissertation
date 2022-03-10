@@ -134,7 +134,7 @@ int main()
 
 	
 
-	VideoCapture leftImageSource(1), rightImageSource(2);
+	VideoCapture leftImageSource(0), rightImageSource(1);
 
 	while (true)
 	{

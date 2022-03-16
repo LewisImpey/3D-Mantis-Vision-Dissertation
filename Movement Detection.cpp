@@ -48,12 +48,15 @@ void detectContours(Mat& image)
 	int largestContourArea = 0;
 	int largestContour = 0;
 
+	// applies a threshold to the merged image, small changes that fall below this threshold will be forgotten about and not tracked
 	threshold(image, threshold_output, 30, 255, THRESH_BINARY);
-	Mat kernel = getStructuringElement(MORPH_ERODE, Size(20, 20));
 
-	//erode(threshold_output,threshold_output, kernel);
+	/* a kernel is created and the dilate function is called, which dilates the image making all of the 
+	   things still detected after the threshold larger. This can help to merge the contours together */
+	Mat kernel = getStructuringElement(MORPH_ERODE, Size(20, 20));
 	dilate(threshold_output, threshold_output, kernel);
-	//Canny(threshold_output, threshold_output, 10, 200);
+
+	// the findContours function is called, which finds and stores all of the found contours for the image
 	findContours(threshold_output, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
 
 	vector<vector<Point> > contours_poly(contours.size());
@@ -61,18 +64,13 @@ void detectContours(Mat& image)
 	vector<Moments> mu(contours.size());
 	vector<Point2f> mc(contours.size());
 
-	int leftmostBox_x = 0;
-	int leftmostBox_y = 0;
-	int rightmostBox_x = 0;
-	int rightmostBox_y = 0;
-
-	// get the moments
+	// the moments for each contour are collected using the moments function
 	for (int i = 0; i < contours.size(); i++)
 	{
 		mu[i] = moments(contours[i], false);
 	}
 
-	// get the centroid of figures.
+	// this is then used to get the centre of each contour found
 	for (int i = 0; i < contours.size(); i++)
 	{
 		mc[i] = Point2f(mu[i].m10 / mu[i].m00, mu[i].m01 / mu[i].m00);
@@ -80,24 +78,15 @@ void detectContours(Mat& image)
 
 	for (size_t i = 0; i < contours.size(); i++)
 	{
-		approxPolyDP(Mat(contours[i]), contours_poly[i], 1, true); // can change epsilon accuracy to change polygonal precision
+		// the approxPolyDP function allow for the precision and accuracy of the contours to be changed. a lower accuracy can make the contours more polygonal
+		approxPolyDP(Mat(contours[i]), contours_poly[i], 1, true);
+		// A bounding box is then created for each of the contours found in the image
 		boundRect[i] = boundingRect(Mat(contours_poly[i]));
-
-	//	if (i == 0) { leftmostBox_x = 0; }
-	//	else if (boundRect[i].tl().x < boundRect[i - 1].tl().x) leftmostBox_x = i;
-
-	//	if (i == 0) { leftmostBox_y = 0; }
-	//	else if (boundRect[i].tl().y < boundRect[i - 1].tl().y) leftmostBox_y = i;
-
-	//	if (i == 0) { rightmostBox_x = 0; }
-	//	else if (boundRect[i].br().x > boundRect[i - 1].br().x) rightmostBox_x = i;
-
-	//	if (i == 0) { rightmostBox_y = 0; }
-	//	else if (boundRect[i].br().y > boundRect[i - 1].br().y) rightmostBox_y = i;
 	}
 
 	for (size_t i = 0; i < contours.size(); i++)
 	{
+		// the bounding boxes made are then looped through to find out which is the largest, as we only want to show one box, that being the biggest
 		if (i == 0) { largestContourArea = boundRect[0].area(); }
 		else if (boundRect[i].area() > largestContourArea) {largestContourArea = boundRect[i].area(); largestContour = i;}
 	}
@@ -105,23 +94,25 @@ void detectContours(Mat& image)
 	for (size_t i = 0; i < contours.size(); i++)
 	{
 		Scalar colour = Scalar(rng.uniform(0, 256), rng.uniform(0, 256), rng.uniform(0, 256));
+
 		drawContours(image, contours_poly, (int)i, colour, 2, 8, vector<Vec4i>(), 0, Point());
-		//rectangle(image, boundRect[i].tl(), boundRect[i].br(), 255, 2, 8, 0);
+
+		// the largest bounding box is then drawn onto the image using the rectangle function
 		rectangle(image, boundRect[largestContour].tl(), boundRect[largestContour].br(), 255, 2, 8, 0);
-		//rectangle(image, Point(boundRect[leftmostBox_x].tl().x, boundRect[leftmostBox_y].tl().y), Point(boundRect[rightmostBox_x].br().x, boundRect[rightmostBox_y].br().y), colour, 2, 8, 0);
+		// the centroid of the largest box is also drawn using the circle function
 		circle(image, mc[largestContour], 5, Scalar(255,255,255), FILLED);
 	}
 	waitKey(1);
 
 	// get the centre of the left and right boxes
 	// if they have the same y coordinate
-	// do the mathematical equation to find disparity
+	// do the mathematical equation to find disparity 
 }
 
 int main()
 {
-	Mat leftDiff, leftDilatedImage;
-	Mat rightDiff, rightDilatedImage;
+	Mat leftDiff;
+	Mat rightDiff;
 	/*
 	// this if trying to use an image
 	string leftImageSource1 = "Resources/left_image_1.jpg";
@@ -167,16 +158,13 @@ int main()
 		leftDiff = detectDifference(leftImageFrame1, leftImageFrame2);
 		//rightDiff = detectDifference(rightImageFrame1, rightImageFrame2);
 
-		//leftDilatedImage = applyDilation(leftDiff);
-		//rightDilatedImage = applyDilation(rightDiff);
-
 		detectContours(leftDiff);
 		//detectContours(rightDiff);
 
-		imshow("left dilated image", leftDiff);
-		//imshow("right dilated image", rightDiff);
+		imshow("Left Camera Image", leftDiff);
+		//imshow("Right Camera Image", rightDiff);
 
-		imshow("normal cam", leftImageFrame1);
+		imshow("normal cam left", leftImageFrame1);
 		waitKey(1);
 	}
 	

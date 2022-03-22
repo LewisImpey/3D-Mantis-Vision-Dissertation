@@ -101,25 +101,28 @@ void detectContours(Mat& image)
 		rectangle(image, boundRect[largestContour].tl(), boundRect[largestContour].br(), 255, 2, 8, 0);
 		// the centroid of the largest box is also drawn using the circle function
 		circle(image, mc[largestContour], 5, Scalar(255,255,255), FILLED);
+		putText(image, "y: " + to_string(mc[largestContour].y), Point(10, 20), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
 	}
-	waitKey(1);
-
 	// get the centre of the left and right boxes
 	// if they have the same y coordinate
 	// do the mathematical equation to find disparity 
 }
 
+//int calculateDepth(int leftCoordinate, int rightCoordinate)
+//{
+//
+//}
 int main()
 {
 	Mat leftDiff;
 	Mat rightDiff;
 	/*
 	// this if trying to use an image
-	string leftImageSource1 = "Resources/left_image_1.jpg";
-	string rightImageSource1 = "Resources/right_image_1.jpg";
+	string leftImageSource1 = "leftFrame2.jpg";
+	string rightImageSource1 = "rightFrame2.jpg";
 
-	string leftImageSource2 = "Resources/left_image_2.jpg";
-	string rightImageSource2 = "Resources/right_image_2.jpg";
+	string leftImageSource2 = "leftFrame3.jpg";
+	string rightImageSource2 = "rightFrame3.jpg";
 
 	Mat leftImage1 = imread(leftImageSource1);
 	Mat rightImage1 = imread(rightImageSource1);
@@ -130,18 +133,14 @@ int main()
 	leftDiff = detectDifference(leftImage1, leftImage2);
 	rightDiff = detectDifference(rightImage1, rightImage2);
 
-	//leftDilatedImage = applyDilation(leftDiff);
-	//rightDilatedImage = applyDilation(rightDiff);
-
 	detectContours(leftDiff);
 	detectContours(rightDiff);
 
 	imshow("left image", leftDiff);
 	imshow("right image", rightDiff);
 	waitKey(0);
-	*/
 	// this is taking image directly from cameras
-
+	*/
 	
 
 	VideoCapture leftImageSource(0), rightImageSource(1);
@@ -150,21 +149,22 @@ int main()
 	{
 		Mat leftImageFrame1, leftImageFrame2, rightImageFrame1, rightImageFrame2;
 		leftImageSource >> leftImageFrame1;
-		//rightImageSource >> rightImageFrame1;
+		rightImageSource >> rightImageFrame1;
 		this_thread::sleep_for(chrono::milliseconds(1));
 		leftImageSource >> leftImageFrame2;
-		//rightImageSource >> rightImageFrame2;
+		rightImageSource >> rightImageFrame2;
 
 		leftDiff = detectDifference(leftImageFrame1, leftImageFrame2);
-		//rightDiff = detectDifference(rightImageFrame1, rightImageFrame2);
+		rightDiff = detectDifference(rightImageFrame1, rightImageFrame2);
 
 		detectContours(leftDiff);
-		//detectContours(rightDiff);
+		detectContours(rightDiff);
 
 		imshow("Left Camera Image", leftDiff);
-		//imshow("Right Camera Image", rightDiff);
+		imshow("Right Camera Image", rightDiff);
 
 		imshow("normal cam left", leftImageFrame1);
+		imshow("normal cam right", rightImageFrame1);
 		waitKey(1);
 	}
 	

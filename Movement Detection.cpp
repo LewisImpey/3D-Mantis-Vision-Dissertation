@@ -16,6 +16,13 @@ using namespace std;
 
 RNG rng(12345);
 
+float left_x_coord = 0;
+float right_x_coord = 0;
+float left_y_coord = 0;
+float right_y_coord = 0;
+float temp_x_coord = 0;
+float temp_y_coord = 0;
+
 Mat detectDifference(Mat ImageFrame1, Mat ImageFrame2)
 {
 	Mat diff;
@@ -51,7 +58,7 @@ void detectContours(Mat& image)
 	// applies a threshold to the merged image, small changes that fall below this threshold will be forgotten about and not tracked
 	threshold(image, threshold_output, 30, 255, THRESH_BINARY);
 
-	/* a kernel is created and the dilate function is called, which dilates the image making all of the 
+	/* a kernel is created and the dilate function is called, which dilates the image making all of the
 	   things still detected after the threshold larger. This can help to merge the contours together */
 	Mat kernel = getStructuringElement(MORPH_ERODE, Size(20, 20));
 	dilate(threshold_output, threshold_output, kernel);
@@ -88,7 +95,7 @@ void detectContours(Mat& image)
 	{
 		// the bounding boxes made are then looped through to find out which is the largest, as we only want to show one box, that being the biggest
 		if (i == 0) { largestContourArea = boundRect[0].area(); }
-		else if (boundRect[i].area() > largestContourArea) {largestContourArea = boundRect[i].area(); largestContour = i;}
+		else if (boundRect[i].area() > largestContourArea) { largestContourArea = boundRect[i].area(); largestContour = i; }
 	}
 
 	for (size_t i = 0; i < contours.size(); i++)
@@ -100,22 +107,27 @@ void detectContours(Mat& image)
 		// the largest bounding box is then drawn onto the image using the rectangle function
 		rectangle(image, boundRect[largestContour].tl(), boundRect[largestContour].br(), 255, 2, 8, 0);
 		// the centroid of the largest box is also drawn using the circle function
-		circle(image, mc[largestContour], 5, Scalar(255,255,255), FILLED);
+		circle(image, mc[largestContour], 5, Scalar(255, 255, 255), FILLED);
+
 		putText(image, "y: " + to_string(mc[largestContour].y), Point(10, 20), FONT_HERSHEY_DUPLEX, 0.50, colour, 1);
+		temp_x_coord = mc[largestContour].x;
+		temp_y_coord = mc[largestContour].y;
 	}
-	// get the centre of the left and right boxes
-	// if they have the same y coordinate
-	// do the mathematical equation to find disparity 
 }
 
-//int calculateDepth(int leftCoordinate, int rightCoordinate)
-//{
-//
-//}
+float calculateDepth(float left_x_coord, float right_y_coord, int cameraFocalLength, int baseline)
+{
+	float depth = (cameraFocalLength * baseline) / (left_x_coord - right_x_coord);
+	return depth;
+}
+
 int main()
 {
 	Mat leftDiff;
 	Mat rightDiff;
+	int focalLength = 1;
+	int baseline = 155;
+	float depth = 0;
 	/*
 	// this if trying to use an image
 	string leftImageSource1 = "leftFrame2.jpg";
@@ -141,7 +153,7 @@ int main()
 	waitKey(0);
 	// this is taking image directly from cameras
 	*/
-	
+
 
 	VideoCapture leftImageSource(0), rightImageSource(1);
 
@@ -158,14 +170,25 @@ int main()
 		rightDiff = detectDifference(rightImageFrame1, rightImageFrame2);
 
 		detectContours(leftDiff);
+		left_x_coord = temp_x_coord;
+		left_y_coord = temp_y_coord;
+
 		detectContours(rightDiff);
+		right_x_coord = temp_x_coord;
+		right_y_coord = temp_y_coord;
+		if (right_y_coord > left_y_coord - 10 && right_y_coord < left_y_coord + 10) 
+		{
+			putText(leftDiff, "level", Point(10, 40), FONT_HERSHEY_DUPLEX, 0.50, Scalar(255,255,255), 1);
+			depth = calculateDepth(left_x_coord, right_x_coord, focalLength, baseline);
+			putText(leftDiff, "depth: " + to_string(depth), Point(10, 60), FONT_HERSHEY_DUPLEX, 0.50, Scalar(255, 255, 255), 1);
+		}
 
 		imshow("Left Camera Image", leftDiff);
 		imshow("Right Camera Image", rightDiff);
 
-		imshow("normal cam left", leftImageFrame1);
-		imshow("normal cam right", rightImageFrame1);
+		//imshow("normal cam left", leftImageFrame1);
+		//imshow("normal cam right", rightImageFrame1);
 		waitKey(1);
 	}
-	
+
 }

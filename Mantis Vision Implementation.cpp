@@ -32,8 +32,8 @@ Mat detectDifference(Mat ImageFrame1, Mat ImageFrame2)
 	cvtColor(ImageFrame2, ImageFrame2, COLOR_BGR2GRAY);
 
 	// applying a blur filter to the image to merge neighboring pixels together. This should allow the bounding boxes to pick up larger areas of pixels.
-	GaussianBlur(ImageFrame1, ImageFrame1, Size(15, 15), 0, 0);
-	GaussianBlur(ImageFrame2, ImageFrame2, Size(15, 15), 0, 0);
+	GaussianBlur(ImageFrame1, ImageFrame1, Size(7, 7), 0, 0);
+	GaussianBlur(ImageFrame2, ImageFrame2, Size(7, 7), 0, 0);
 
 	// getting the difference between the two images
 	absdiff(ImageFrame1, ImageFrame2, diff);
@@ -55,7 +55,7 @@ void detectContours(Mat& image, Mat& originalFrame)
 
 	/* a kernel is created and the dilate function is called, which dilates the image making all of the
 	   things still detected after the threshold larger. This can help to merge the contours together */
-	Mat kernel = getStructuringElement(MORPH_ERODE, Size(30, 30));
+	Mat kernel = getStructuringElement(MORPH_ERODE, Size(15, 15));
 	dilate(threshold_output, threshold_output, kernel);
 
 	// the findContours function is called, which finds and stores all of the found contours for the image
@@ -112,7 +112,7 @@ void detectContours(Mat& image, Mat& originalFrame)
 	}
 }
 
-int calculateDepth(float left_x_coord, float right_y_coord, int cameraFocalLength, int baseline)
+int calculateDepth(float left_x_coord, float right_x_coord, int cameraFocalLength, int baseline)
 {
 	// depth formula is used to calculation the distance of the object from the cameras
 	int depth = (cameraFocalLength * baseline) / (right_x_coord - left_x_coord);

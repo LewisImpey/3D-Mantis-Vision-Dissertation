@@ -41,7 +41,7 @@ Mat detectDifference(Mat ImageFrame1, Mat ImageFrame2)
 	return diff;
 }
 
-void detectContours(Mat& image, Mat& originalFrame )
+void detectContours(Mat& image, Mat& originalFrame)
 {
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
@@ -128,61 +128,61 @@ int main()
 	int baseline = 160;
 	int depth = 0;
 
-	
-///////////////////////////////////////////////////////////////// This section of code is used to perform the detection on static images /////////////////////////////////////////////////////////////
-	//string leftImageFrame1 = "Resources/leftFrame1.jpg";
-	//string rightImageFrame1 = "Resources/rightFrame1.jpg";
 
-	//string leftImageFrame2 = "Resources/leftFrame2.jpg";
-	//string rightImageFrame2 = "Resources/rightFrame2.jpg";
+	///////////////////////////////////////////////////////////////// This section of code is used to perform the detection on static images /////////////////////////////////////////////////////////////
+		//string leftImageFrame1 = "Resources/leftFrame1.jpg";
+		//string rightImageFrame1 = "Resources/rightFrame1.jpg";
 
-	//Mat leftImage1 = imread(leftImageFrame1);
-	//Mat rightImage1 = imread(rightImageFrame1);
+		//string leftImageFrame2 = "Resources/leftFrame2.jpg";
+		//string rightImageFrame2 = "Resources/rightFrame2.jpg";
 
-	//Mat leftImage2 = imread(leftImageFrame2);
-	//Mat rightImage2 = imread(rightImageFrame2);
+		//Mat leftImage1 = imread(leftImageFrame1);
+		//Mat rightImage1 = imread(rightImageFrame1);
 
-	//leftDiff = detectDifference(leftImage1, leftImage2);
-	//rightDiff = detectDifference(rightImage1, rightImage2);
+		//Mat leftImage2 = imread(leftImageFrame2);
+		//Mat rightImage2 = imread(rightImageFrame2);
 
-	//detectContours(leftDiff, leftImage2);
-	//left_x_coord = temp_x_coord;
-	//left_y_coord = temp_y_coord;
+		//leftDiff = detectDifference(leftImage1, leftImage2);
+		//rightDiff = detectDifference(rightImage1, rightImage2);
 
-	//detectContours(rightDiff, rightImage2);
-	//right_x_coord = temp_x_coord;
-	//right_y_coord = temp_y_coord;
-	//if (right_y_coord > left_y_coord - 20 && right_y_coord < left_y_coord + 20)
-	//{
-	//	depth = calculateDepth(left_x_coord, right_x_coord, focalLength, baseline);
-	//	if (depth > 0)
-	//	{
-	//		putText(leftDiff, "distance to object: " + to_string(depth) + "cm", Point(200, 20), FONT_HERSHEY_DUPLEX, 0.50, Scalar(255, 255, 255), 1);
-	//		putText(rightDiff, "distance to object: " + to_string(depth) + "cm", Point(200, 20), FONT_HERSHEY_DUPLEX, 0.50, Scalar(255, 255, 255), 1);
-	// 
-	// 		putText(leftImage2, "distance to object: " + to_string(depth) + "cm", Point(175, 20), FONT_HERSHEY_DUPLEX, 0.75, Scalar(255, 255, 255), 1);
-	//		putText(rightImage2, "distance to object: " + to_string(depth) + "cm", Point(175, 20), FONT_HERSHEY_DUPLEX, 0.75, Scalar(255, 255, 255), 1);
-	//	}
-	//}
+		//detectContours(leftDiff, leftImage2);
+		//left_x_coord = temp_x_coord;
+		//left_y_coord = temp_y_coord;
 
-	//imshow("left image", leftDiff);
-	//imshow("right image", rightDiff);
-	//imshow("Normal Left Camera Frame", leftImage2);
-	//imshow("Normal Right Camera Frame", rightImage2);
+		//detectContours(rightDiff, rightImage2);
+		//right_x_coord = temp_x_coord;
+		//right_y_coord = temp_y_coord;
+		//if (right_y_coord > left_y_coord - 20 && right_y_coord < left_y_coord + 20)
+		//{
+		//	depth = calculateDepth(left_x_coord, right_x_coord, focalLength, baseline);
+		//	if (depth > 0)
+		//	{
+		//		putText(leftDiff, "distance to object: " + to_string(depth) + "cm", Point(200, 20), FONT_HERSHEY_DUPLEX, 0.50, Scalar(255, 255, 255), 1);
+		//		putText(rightDiff, "distance to object: " + to_string(depth) + "cm", Point(200, 20), FONT_HERSHEY_DUPLEX, 0.50, Scalar(255, 255, 255), 1);
+		// 
+		// 		putText(leftImage2, "distance to object: " + to_string(depth) + "cm", Point(175, 20), FONT_HERSHEY_DUPLEX, 0.75, Scalar(255, 255, 255), 1);
+		//		putText(rightImage2, "distance to object: " + to_string(depth) + "cm", Point(175, 20), FONT_HERSHEY_DUPLEX, 0.75, Scalar(255, 255, 255), 1);
+		//	}
+		//}
 
-	//waitKey(0);
+		//imshow("left image", leftDiff);
+		//imshow("right image", rightDiff);
+		//imshow("Normal Left Camera Frame", leftImage2);
+		//imshow("Normal Right Camera Frame", rightImage2);
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//waitKey(0);
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-///////////////////////////////////////////////////////////////// This section of code is used to perform the detection on live video ///////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////// This section of code is used to perform the detection on live video ///////////////////////////////////////////////////////////////
 
 	VideoCapture leftImageSource(0), rightImageSource(1);
 
 	while (true)
 	{
 		Mat leftImageFrame1, leftImageFrame2, rightImageFrame1, rightImageFrame2;
-		
+
 		// frames from each camera are saved which will be used as the previous frames
 		leftImageSource >> leftImageFrame1;
 		rightImageSource >> rightImageFrame1;
@@ -225,5 +225,5 @@ int main()
 		waitKey(1);
 	}
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
